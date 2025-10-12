@@ -50,23 +50,52 @@ export default function Home() {
     setError(null)
 
     try {
-      const formData = new FormData()
-      formData.append('file', selectedFile)
+      // Step 1: Upload image to our Next.js API to get a public URL
+      const uploadFormData = new FormData()
+      uploadFormData.append('file', selectedFile)
+      
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
+        body: uploadFormData,
+      })
+      
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload image')
+      }
+      
+      const { imageUrl } = await uploadResponse.json()
 
-      // Replace with your actual API URL (local: http://localhost:8000)
+      // Step 2: Send the image URL to Railway backend
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
       
       const response = await fetch(`${API_URL}/analyze`, {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ imageUrl }),
       })
 
       if (!response.ok) {
         throw new Error('Analysis failed')
       }
 
-      const data: AnalysisResult = await response.json()
-      setResult(data)
+      const data = await response.json()
+      
+      // Transform response to match expected format
+      setResult({
+        success: true,
+        images: {
+          final: data.imageBase64?.replace('data:image/jpeg;base64,', '') || '',
+          detected_lines: '',
+          rectified: ''
+        },
+        analysis: {
+          lines_detected: data.lines?.length || 0,
+          lines: data.lines || []
+        },
+        original_size: data.imageMeta?.size || 'Unknown'
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
