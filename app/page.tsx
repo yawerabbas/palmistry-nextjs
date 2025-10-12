@@ -52,22 +52,15 @@ export default function Home() {
     setError(null)
 
     try {
-      // Step 1: Upload image to our Next.js API to get a public URL
-      const uploadFormData = new FormData()
-      uploadFormData.append('file', selectedFile)
-      
-      const uploadResponse = await fetch('/api/upload', {
-        method: 'POST',
-        body: uploadFormData,
+      // Convert image to base64 data URL
+      const reader = new FileReader()
+      const imageDataUrl = await new Promise<string>((resolve, reject) => {
+        reader.onloadend = () => resolve(reader.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(selectedFile)
       })
-      
-      if (!uploadResponse.ok) {
-        throw new Error('Failed to upload image')
-      }
-      
-      const { imageUrl } = await uploadResponse.json()
 
-      // Step 2: Send the image URL to Railway backend
+      // Send the base64 image directly to Railway backend
       const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '')
       
       const response = await fetch(`${API_URL}/analyze`, {
@@ -75,7 +68,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ imageUrl }),
+        body: JSON.stringify({ imageUrl: imageDataUrl }),
       })
 
       if (!response.ok) {
