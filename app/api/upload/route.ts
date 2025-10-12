@@ -38,8 +38,11 @@ export async function POST(request: NextRequest) {
       imageStore.delete(id)
     }, 5 * 60 * 1000)
     
-    // Return public URL
-    const baseUrl = request.nextUrl.origin
+    // Return full public URL (absolute)
+    const protocol = request.headers.get('x-forwarded-proto') || 'http'
+    const host = request.headers.get('host') || request.nextUrl.host
+    const baseUrl = `${protocol}://${host}`
+    
     return NextResponse.json({ 
       imageUrl: `${baseUrl}/api/image/${id}` 
     })
