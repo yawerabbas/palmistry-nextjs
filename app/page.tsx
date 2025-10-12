@@ -68,7 +68,7 @@ export default function Home() {
       const { imageUrl } = await uploadResponse.json()
 
       // Step 2: Send the image URL to Railway backend
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '')
       
       const response = await fetch(`${API_URL}/analyze`, {
         method: 'POST',
