@@ -23,7 +23,10 @@ export async function GET(
     return NextResponse.json({ error: 'Image not found' }, { status: 404 })
   }
   
-  return new NextResponse(image.data, {
+  // Convert Buffer to Uint8Array for NextResponse
+  const uint8Array = new Uint8Array(image.data)
+  
+  return new NextResponse(uint8Array, {
     headers: {
       'Content-Type': image.contentType,
       'Cache-Control': 'no-store, max-age=0',
