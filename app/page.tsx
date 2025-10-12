@@ -5,19 +5,11 @@ import Image from 'next/image'
 
 interface AnalysisResult {
   success: boolean
-  images: {
-    final: string
-    detected_lines: string
-    rectified: string
-  }
-  analysis: {
-    lines_detected: number
-    lines: Array<{
-      name: string
-      points: number
-    }>
-  }
-  original_size: string
+  analysis: any  // Full analysis object from backend
+  lines: any[]   // Detected lines array
+  imageMeta: any // Image metadata
+  imageBase64: string // Result image
+  runId: string  // Run ID
 }
 
 export default function Home() {
@@ -82,19 +74,14 @@ export default function Home() {
 
       const data = await response.json()
       
-      // Transform response to match expected format
+      // Store the complete backend response
       setResult({
         success: true,
-        images: {
-          final: data.imageBase64?.replace('data:image/jpeg;base64,', '') || '',
-          detected_lines: '',
-          rectified: ''
-        },
-        analysis: {
-          lines_detected: data.lines?.length || 0,
-          lines: data.lines || []
-        },
-        original_size: data.imageMeta?.size || 'Unknown'
+        analysis: data.analysis || {},
+        lines: data.lines || [],
+        imageMeta: data.imageMeta || {},
+        imageBase64: data.imageBase64 || '',
+        runId: data.runId || ''
       })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -241,21 +228,28 @@ export default function Home() {
                 Analysis Complete!
               </h2>
 
+              {/* Run ID */}
+              <div className="mb-6 text-sm text-gray-600">
+                Run ID: <code className="bg-gray-100 px-2 py-1 rounded">{result.runId}</code>
+              </div>
+
               {/* Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl">
                   <div className="text-3xl font-bold text-blue-600">
-                    {result.analysis.lines_detected}
+                    {result.lines?.length || 0}
                   </div>
                   <div className="text-gray-700 font-medium">Lines Detected</div>
                 </div>
                 <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl">
-                  <div className="text-3xl font-bold text-purple-600">1024×1024</div>
-                  <div className="text-gray-700 font-medium">Normalized</div>
+                  <div className="text-3xl font-bold text-purple-600">
+                    {result.imageMeta?.size || '1024×1024'}
+                  </div>
+                  <div className="text-gray-700 font-medium">Image Size</div>
                 </div>
                 <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl">
-                  <div className="text-3xl font-bold text-green-600">UNet</div>
-                  <div className="text-gray-700 font-medium">AI Model</div>
+                  <div className="text-3xl font-bold text-green-600">AI</div>
+                  <div className="text-gray-700 font-medium">Powered</div>
                 </div>
               </div>
 
@@ -275,41 +269,94 @@ export default function Home() {
                   <h3 className="text-xl font-bold text-gray-900 mb-4">
                     ✨ Analyzed Result
                   </h3>
-                  <img
-                    src={`data:image/png;base64,${result.images.final}`}
-                    alt="Result"
-                    className="w-full rounded-xl shadow-md"
-                  />
+                  {result.imageBase64 && (
+                    <img
+                      src={result.imageBase64}
+                      alt="Result"
+                      className="w-full rounded-xl shadow-md"
+                    />
+                  )}
                 </div>
               </div>
 
+              {/* Full Analysis Data */}
+              {result.analysis && Object.keys(result.analysis).length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                    📊 Analysis Data
+                  </h3>
+                  <div className="bg-gray-50 p-6 rounded-xl overflow-auto">
+                    <pre className="text-sm text-gray-800 whitespace-pre-wrap">
+                      {JSON.stringify(result.analysis, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              )}
+
               {/* Line Details */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {result.analysis.lines.map((line, i) => (
-                  <div
-                    key={i}
-                    className="bg-gradient-to-br from-gray-50 to-gray-100 p-6 rounded-xl"
-                  >
-                    <div className="text-lg font-bold text-gray-900 mb-2">
-                      {line.name}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {line.points} points detected
+              {result.lines && result.lines.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                    🖐️ Detected Lines
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {result.lines.map((line: any, i: number) => (
+                      <div
+                        key={i}
+                        className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 rounded-xl border border-gray-200"
+                      >
+                        <div className="text-lg font-bold text-gray-900 mb-3">
+                          Line {i + 1}
+                        </div>
+                        <div className="text-sm text-gray-700 space-y-2">
+                          {Object.entries(line).map(([key, value]) => (
+                            <div key={key}>
+                              <span className="font-semibold">{key}:</span>{' '}
+                              <span className="text-gray-600">
+                                {typeof value === 'object' 
+                                  ? JSON.stringify(value) 
+                                  : String(value)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Image Metadata */}
+              {result.imageMeta && Object.keys(result.imageMeta).length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                    🖼️ Image Metadata
+                  </h3>
+                  <div className="bg-gray-50 p-6 rounded-xl">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {Object.entries(result.imageMeta).map(([key, value]) => (
+                        <div key={key} className="flex items-center gap-2">
+                          <span className="font-semibold text-gray-700">{key}:</span>
+                          <span className="text-gray-600">{String(value)}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
 
               {/* Download Button */}
-              <div className="mt-8">
-                <a
-                  href={`data:image/png;base64,${result.images.final}`}
-                  download="palmistry-result.png"
-                  className="inline-block bg-green-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-green-700 transition-colors"
-                >
-                  📥 Download Result
-                </a>
-              </div>
+              {result.imageBase64 && (
+                <div className="mt-8">
+                  <a
+                    href={result.imageBase64}
+                    download="palmistry-result.png"
+                    className="inline-block bg-green-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-green-700 transition-colors"
+                  >
+                    📥 Download Result
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         )}
