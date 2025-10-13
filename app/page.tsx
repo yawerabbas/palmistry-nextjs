@@ -31,19 +31,43 @@ export default function Home() {
   const [showDocumentation, setShowDocumentation] = useState(false)
   const [compressionStatus, setCompressionStatus] = useState<string>('')
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      setSelectedFile(file)
-      setResult(null)
-      setError(null)
-      
-      // Create preview
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setPreview(reader.result as string)
+      try {
+        setSelectedFile(file)
+        setResult(null)
+        setError(null)
+        
+        // Fix iPhone orientation issues and create preview
+        // This is crucial for Safari/iOS where images can have EXIF rotation
+        // Dynamic import to avoid SSR issues
+        const { readAndCompressImage } = await import('browser-image-resizer')
+        
+        const config = {
+          quality: 0.9,
+          maxWidth: 800,  // For preview only
+          maxHeight: 800,
+          autoRotate: true,  // Automatically fix orientation
+          debug: false
+        }
+        
+        // Create a properly oriented preview
+        const resizedImage = await readAndCompressImage(file, config)
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          setPreview(reader.result as string)
+        }
+        reader.readAsDataURL(resizedImage)
+      } catch (err) {
+        console.error('Error processing image:', err)
+        // Fallback to basic preview if orientation fix fails
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          setPreview(reader.result as string)
+        }
+        reader.readAsDataURL(file)
       }
-      reader.readAsDataURL(file)
     }
   }
 
@@ -60,26 +84,34 @@ export default function Home() {
         maxSizeMB: 1,          // Maximum file size (1MB)
         maxWidthOrHeight: 1920, // Max dimension (good balance for palm analysis)
         useWebWorker: true,     // Use web worker for better performance
-        fileType: 'image/jpeg'  // Convert to JPEG for better compression
+        fileType: 'image/jpeg', // Convert to JPEG for better compression
+        exifOrientation: 1      // Fix iPhone orientation issues
       }
       
       let fileToUpload = selectedFile
       
-      // Compress if file is larger than 500KB
-      if (selectedFile.size > 500 * 1024) {
+      // Always compress for mobile to fix orientation + size
+      // This is critical for iPhone Safari which has orientation issues
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+      const shouldCompress = selectedFile.size > 500 * 1024 || isMobile
+      
+      if (shouldCompress) {
         try {
-          setCompressionStatus('Compressing image for faster upload...')
+          setCompressionStatus(isMobile ? 'Optimizing image for mobile...' : 'Compressing image for faster upload...')
           fileToUpload = await imageCompression(selectedFile, compressionOptions)
           const originalMB = (selectedFile.size / 1024 / 1024).toFixed(2)
           const compressedMB = (fileToUpload.size / 1024 / 1024).toFixed(2)
           console.log('Original size:', originalMB, 'MB')
           console.log('Compressed size:', compressedMB, 'MB')
-          setCompressionStatus(`Image compressed: ${originalMB}MB → ${compressedMB}MB`)
+          setCompressionStatus(`Image optimized: ${originalMB}MB → ${compressedMB}MB`)
           // Wait a moment so user can see the compression message
           await new Promise(resolve => setTimeout(resolve, 800))
         } catch (compressionError) {
           console.warn('Compression failed, using original:', compressionError)
+          setError('Image processing issue - trying with original image...')
           // Continue with original file if compression fails
+          await new Promise(resolve => setTimeout(resolve, 1000))
+          setError(null)
         }
       }
       
@@ -155,6 +187,7 @@ export default function Home() {
                 <input
                   type="file"
                   accept="image/*"
+                  capture="environment"
                   onChange={handleFileSelect}
                   className="hidden"
                   id="file-upload"
@@ -162,11 +195,13 @@ export default function Home() {
                 <label htmlFor="file-upload" className="cursor-pointer">
                   {preview ? (
                     <div className="space-y-4">
-                      <img
-                        src={preview}
-                        alt="Preview"
-                        className="max-w-md mx-auto rounded-lg shadow-md"
-                      />
+                      <div className="max-w-full mx-auto flex justify-center">
+                        <img
+                          src={preview}
+                          alt="Preview"
+                          className="max-w-full max-h-96 w-auto h-auto object-contain rounded-lg shadow-md"
+                        />
+                      </div>
                       <p className="text-sm text-gray-600">
                         Click to change image
                       </p>
@@ -243,7 +278,8 @@ export default function Home() {
                   <li>• Spread fingers slightly</li>
                   <li>• Use plain background</li>
                   <li>• Ensure palm faces camera</li>
-                  <li>• 📱 Large mobile images are automatically compressed for faster upload</li>
+                  <li>• 📱 Works great on iPhone Safari - capture directly or upload from gallery</li>
+                  <li>• 🔄 Images are automatically optimized and orientation-corrected</li>
                 </ul>
               </div>
 
