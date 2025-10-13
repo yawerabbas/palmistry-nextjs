@@ -378,7 +378,7 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl">
                   <div className="text-3xl font-bold text-blue-600">
-                    {result.lines?.length || 0}
+                    {result.analysis?.detection_checklist?.summary?.palm_lines_detected || 0}
                   </div>
                   <div className="text-gray-700 font-medium">Lines Detected</div>
                 </div>
