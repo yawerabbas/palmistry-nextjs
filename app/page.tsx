@@ -394,6 +394,124 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* Detection Checklist */}
+              {result.analysis?.detection_checklist && (
+                <div className="mb-8 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border-2 border-indigo-200">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                    <span>📋</span>
+                    Detection Checklist
+                  </h3>
+                  
+                  {/* Summary Stats */}
+                  {result.analysis.detection_checklist.summary && (
+                    <div className="mb-6 p-4 bg-white rounded-xl shadow-sm">
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                          <div className="text-2xl font-bold text-green-600">
+                            {result.analysis.detection_checklist.summary.detected}
+                          </div>
+                          <div className="text-sm text-gray-600">Detected</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-gray-400">
+                            {result.analysis.detection_checklist.summary.total_items - result.analysis.detection_checklist.summary.detected}
+                          </div>
+                          <div className="text-sm text-gray-600">Not Detected</div>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-bold text-blue-600">
+                            {result.analysis.detection_checklist.summary.total_items}
+                          </div>
+                          <div className="text-sm text-gray-600">Total Items</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Hand Landmarks */}
+                    {result.analysis.detection_checklist.hand_landmarks && (
+                      <div className="bg-white p-4 rounded-xl shadow-sm">
+                        <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                          <span>👋</span> Hand Landmarks
+                        </h4>
+                        <div className="flex items-center gap-2">
+                          <span className={result.analysis.detection_checklist.hand_landmarks.detected ? 'text-green-600 text-xl' : 'text-red-500 text-xl'}>
+                            {result.analysis.detection_checklist.hand_landmarks.detected ? '✓' : '✗'}
+                          </span>
+                          <span className="text-sm text-gray-700">
+                            {result.analysis.detection_checklist.hand_landmarks.status}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Palm Lines */}
+                    {result.analysis.detection_checklist.palm_lines && (
+                      <div className="bg-white p-4 rounded-xl shadow-sm">
+                        <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                          <span>🖐️</span> Palm Lines
+                        </h4>
+                        <div className="space-y-2">
+                          {Object.entries(result.analysis.detection_checklist.palm_lines).map(([lineName, lineData]: [string, any]) => (
+                            <div key={lineName} className="flex items-center gap-2">
+                              <span className={lineData.detected ? 'text-green-600' : 'text-red-500'}>
+                                {lineData.detected ? '✓' : '✗'}
+                              </span>
+                              <span className="text-sm text-gray-700 capitalize">
+                                {lineName.replace('_', ' ')}: {lineData.status.replace('✓ ', '').replace('✗ ', '')}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Mounts */}
+                    {result.analysis.detection_checklist.mounts && (
+                      <div className="bg-white p-4 rounded-xl shadow-sm">
+                        <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                          <span>⛰️</span> Mounts
+                        </h4>
+                        <div className="space-y-2">
+                          {Object.entries(result.analysis.detection_checklist.mounts).map(([mountName, mountData]: [string, any]) => (
+                            <div key={mountName} className="flex items-center gap-2">
+                              <span className={mountData.detected ? 'text-green-600' : mountData.status.includes('⚠') ? 'text-yellow-500' : 'text-red-500'}>
+                                {mountData.detected ? '✓' : mountData.status.includes('⚠') ? '⚠' : '✗'}
+                              </span>
+                              <span className="text-sm text-gray-700 capitalize">
+                                {mountName}: {mountData.status.replace('✓ ', '').replace('✗ ', '').replace('⚠ ', '')}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Hand Characteristics */}
+                    {result.analysis.detection_checklist.hand_characteristics && (
+                      <div className="bg-white p-4 rounded-xl shadow-sm">
+                        <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                          <span>✋</span> Hand Characteristics
+                        </h4>
+                        <div className="space-y-2">
+                          {Object.entries(result.analysis.detection_checklist.hand_characteristics).map(([charName, charData]: [string, any]) => (
+                            <div key={charName} className="flex items-center gap-2">
+                              <span className={charData.detected ? 'text-green-600' : 'text-red-500'}>
+                                {charData.detected ? '✓' : '✗'}
+                              </span>
+                              <span className="text-sm text-gray-700 capitalize">
+                                {charName.replace('_', ' ')}: {charData.status.replace('✓ ', '').replace('✗ ', '')}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Processing Steps Documentation */}
               <div className="mb-8">
                 <button
