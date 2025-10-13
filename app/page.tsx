@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import imageCompression from 'browser-image-compression'
 
 interface ProcessingStep {
   step: number
@@ -28,6 +29,7 @@ export default function Home() {
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [showDocumentation, setShowDocumentation] = useState(false)
+  const [compressionStatus, setCompressionStatus] = useState<string>('')
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -50,14 +52,45 @@ export default function Home() {
 
     setLoading(true)
     setError(null)
+    setCompressionStatus('')
 
     try {
+      // Compress image before uploading (especially important for mobile)
+      const compressionOptions = {
+        maxSizeMB: 1,          // Maximum file size (1MB)
+        maxWidthOrHeight: 1920, // Max dimension (good balance for palm analysis)
+        useWebWorker: true,     // Use web worker for better performance
+        fileType: 'image/jpeg'  // Convert to JPEG for better compression
+      }
+      
+      let fileToUpload = selectedFile
+      
+      // Compress if file is larger than 500KB
+      if (selectedFile.size > 500 * 1024) {
+        try {
+          setCompressionStatus('Compressing image for faster upload...')
+          fileToUpload = await imageCompression(selectedFile, compressionOptions)
+          const originalMB = (selectedFile.size / 1024 / 1024).toFixed(2)
+          const compressedMB = (fileToUpload.size / 1024 / 1024).toFixed(2)
+          console.log('Original size:', originalMB, 'MB')
+          console.log('Compressed size:', compressedMB, 'MB')
+          setCompressionStatus(`Image compressed: ${originalMB}MB → ${compressedMB}MB`)
+          // Wait a moment so user can see the compression message
+          await new Promise(resolve => setTimeout(resolve, 800))
+        } catch (compressionError) {
+          console.warn('Compression failed, using original:', compressionError)
+          // Continue with original file if compression fails
+        }
+      }
+      
+      setCompressionStatus('Uploading and analyzing...')
+
       // Convert image to base64 data URL
       const reader = new FileReader()
       const imageDataUrl = await new Promise<string>((resolve, reject) => {
         reader.onloadend = () => resolve(reader.result as string)
         reader.onerror = reject
-        reader.readAsDataURL(selectedFile)
+        reader.readAsDataURL(fileToUpload)
       })
 
       // Send the base64 image directly to Railway backend
@@ -155,35 +188,42 @@ export default function Home() {
               </div>
 
               {selectedFile && (
-                <button
-                  onClick={handleAnalyze}
-                  disabled={loading}
-                  className="mt-6 w-full bg-blue-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-lg"
-                >
-                  {loading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                          fill="none"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      Analyzing... (10-30 seconds)
-                    </span>
-                  ) : (
-                    '🔍 Analyze Palm'
+                <>
+                  <button
+                    onClick={handleAnalyze}
+                    disabled={loading}
+                    className="mt-6 w-full bg-blue-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-lg"
+                  >
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                        {compressionStatus || 'Analyzing... (10-30 seconds)'}
+                      </span>
+                    ) : (
+                      '🔍 Analyze Palm'
+                    )}
+                  </button>
+                  {loading && compressionStatus && (
+                    <div className="mt-3 text-center text-sm text-blue-600 font-medium">
+                      {compressionStatus}
+                    </div>
                   )}
-                </button>
+                </>
               )}
 
               {error && (
@@ -203,6 +243,7 @@ export default function Home() {
                   <li>• Spread fingers slightly</li>
                   <li>• Use plain background</li>
                   <li>• Ensure palm faces camera</li>
+                  <li>• 📱 Large mobile images are automatically compressed for faster upload</li>
                 </ul>
               </div>
 
