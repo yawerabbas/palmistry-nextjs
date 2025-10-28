@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import imageCompression from 'browser-image-compression'
+import { motion } from 'framer-motion'
 
 interface ProcessingStep {
   step: number
@@ -20,6 +21,306 @@ interface AnalysisResult {
   imageBase64: string // Result image
   runId: string  // Run ID
   processingSteps: ProcessingStep[] // Intermediate processing steps
+}
+
+interface Point {
+  x: number
+  y: number
+}
+
+interface Line {
+  name: string
+  detected: boolean
+  points: Point[]
+}
+
+// Interactive Palm Image with SVG Overlay Component - Golden Mystical Theme
+function PalmImageWithSVG({ 
+  imageBase64, 
+  lines, 
+  imageMeta 
+}: { 
+  imageBase64: string
+  lines: Line[]
+  imageMeta: any 
+}) {
+  const [hoveredLine, setHoveredLine] = useState<string | null>(null)
+  const [showLines, setShowLines] = useState(true)
+  
+  // Get image dimensions
+  const imageWidth = imageMeta?.width || 1024
+  const imageHeight = imageMeta?.height || 1024
+  
+  // Golden mystical color palette - all lines same bright gold
+  const goldenBright = '#FFD700'  // Bright gold for all lines
+  const goldenColors: Record<string, string> = {
+    'Heart Line': goldenBright,
+    'Head Line': goldenBright,
+    'Life Line': goldenBright
+  }
+  
+  // Generate SVG path from points
+  const generatePath = (points: Point[]) => {
+    if (!points || points.length === 0) return ''
+    
+    return points.map((point, index) => {
+      const x = point.x * imageWidth
+      const y = point.y * imageHeight
+      return `${index === 0 ? 'M' : 'L'} ${x} ${y}`
+    }).join(' ')
+  }
+  
+  // Get golden color for a specific line
+  const getGoldenColor = (lineName: string) => {
+    return goldenColors[lineName] || '#d4af37'
+  }
+  
+  return (
+    <div className="relative bg-black rounded-xl">
+      {/* Radial pulse background */}
+      <motion.div
+        className="absolute inset-0 rounded-xl pointer-events-none z-10"
+        style={{
+          background: 'radial-gradient(circle at center, rgba(212,175,55,0.15) 0%, transparent 70%)',
+        }}
+        animate={{
+          scale: [1, 1.05, 1],
+          opacity: [0.3, 0.6, 0.3],
+        }}
+        transition={{
+          duration: 2.5,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+      
+      {/* Base Image */}
+      <img
+        src={imageBase64}
+        alt="Palm Analysis"
+        className="w-full rounded-xl shadow-2xl relative z-0"
+        style={{ filter: 'brightness(0.85) contrast(1.1)' }}
+      />
+      
+      {/* SVG Overlay with Golden Mystical Lines */}
+      {showLines && (
+        <svg
+          className="absolute top-0 left-0 w-full h-full rounded-xl pointer-events-none z-20"
+          viewBox={`0 0 ${imageWidth} ${imageHeight}`}
+          preserveAspectRatio="xMidYMid meet"
+        >
+          {/* Define golden glow filters */}
+          <defs>
+            <filter id="golden-glow" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur1"/>
+              <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur2"/>
+              <feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur3"/>
+              <feMerge>
+                <feMergeNode in="blur3"/>
+                <feMergeNode in="blur2"/>
+                <feMergeNode in="blur1"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            
+            <filter id="golden-glow-intense" x="-150%" y="-150%" width="400%" height="400%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur1"/>
+              <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur2"/>
+              <feGaussianBlur in="SourceGraphic" stdDeviation="20" result="blur3"/>
+              <feMerge>
+                <feMergeNode in="blur3"/>
+                <feMergeNode in="blur2"/>
+                <feMergeNode in="blur1"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          
+          {lines.map((line, index) => {
+            if (!line.detected || !line.points || line.points.length === 0) return null
+            
+            const isHovered = hoveredLine === line.name
+            const pathData = generatePath(line.points)
+            const delay = index * 0.15
+            const lineGoldenColor = getGoldenColor(line.name)
+            
+            return (
+              <g key={index}>
+                {/* Outer glow layer - softest, largest */}
+                <motion.path
+                  d={pathData}
+                  fill="none"
+                  stroke={lineGoldenColor}
+                  strokeWidth={28}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  filter="url(#golden-glow)"
+                  initial={{ opacity: 0, pathLength: 0 }}
+                  animate={{ 
+                    opacity: hoveredLine && !isHovered ? [0.15, 0.25, 0.15] : [0.2, 0.4, 0.2],
+                    strokeWidth: isHovered ? [32, 40, 32] : [24, 32, 24],
+                  }}
+                  transition={{
+                    duration: 2.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: delay
+                  }}
+                />
+                
+                {/* Middle glow layer - medium brightness */}
+                <motion.path
+                  d={pathData}
+                  fill="none"
+                  stroke={lineGoldenColor}
+                  strokeWidth={14}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  filter="url(#golden-glow)"
+                  initial={{ opacity: 0, pathLength: 0 }}
+                  animate={{ 
+                    opacity: hoveredLine && !isHovered ? [0.3, 0.4, 0.3] : [0.5, 0.7, 0.5],
+                    strokeWidth: isHovered ? [16, 20, 16] : [12, 16, 12],
+                  }}
+                  transition={{
+                    duration: 2.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: delay + 0.1
+                  }}
+                />
+                
+                {/* Core sharp line - brightest, thinnest */}
+                <motion.path
+                  d={pathData}
+                  fill="none"
+                  stroke={lineGoldenColor}
+                  strokeWidth={4}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  initial={{ opacity: 0, pathLength: 0 }}
+                  animate={{ 
+                    opacity: hoveredLine && !isHovered ? [0.6, 0.75, 0.6] : [0.9, 1, 0.9],
+                    strokeWidth: isHovered ? [4, 6, 4] : [3, 4, 3],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: delay + 0.2
+                  }}
+                />
+                
+                {/* Hover effect - intense glow */}
+                {isHovered && (
+                  <motion.path
+                    d={pathData}
+                    fill="none"
+                    stroke={lineGoldenColor}
+                    strokeWidth={40}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    filter="url(#golden-glow-intense)"
+                    initial={{ opacity: 0 }}
+                    animate={{ 
+                      opacity: [0.1, 0.3, 0.1],
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  />
+                )}
+              </g>
+            )
+          })}
+        </svg>
+      )}
+      
+      {/* Controls */}
+      <div className="absolute top-4 right-4 flex flex-col gap-2 z-30">
+        <motion.button
+          onClick={() => setShowLines(!showLines)}
+          className="backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg font-medium text-sm transition-colors"
+          style={{ 
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            color: '#FFD700',
+            border: `1px solid #d4af37`,
+            textShadow: `0 0 10px rgba(255,215,0,0.6)`,
+          }}
+          whileHover={{ scale: 1.05, boxShadow: `0 0 20px rgba(255,215,0,0.8)` }}
+          whileTap={{ scale: 0.95 }}
+        >
+          {showLines ? '✨ Hide Lines' : '✨ Show Lines'}
+        </motion.button>
+      </div>
+      
+      {/* Line Legend with Golden Theme */}
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        {lines.map((line, index) => {
+          if (!line.detected) return null
+          
+          const lineGoldenColor = getGoldenColor(line.name)
+          const isLineHovered = hoveredLine === line.name
+          
+          return (
+            <motion.button
+              key={index}
+              onMouseEnter={() => setHoveredLine(line.name)}
+              onMouseLeave={() => setHoveredLine(null)}
+              className="p-3 rounded-lg border-2 transition-all"
+              style={{
+                backgroundColor: isLineHovered ? 'rgba(255,215,0,0.15)' : 'rgba(0,0,0,0.8)',
+                borderColor: isLineHovered ? lineGoldenColor : '#d4af37',
+                color: lineGoldenColor,
+              }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              animate={isLineHovered ? {
+                boxShadow: [`0 0 10px ${lineGoldenColor}50`, `0 0 20px ${lineGoldenColor}80`, `0 0 10px ${lineGoldenColor}50`]
+              } : {}}
+              transition={{ duration: 1.5, repeat: Infinity }}
+            >
+              <div className="flex items-center gap-2">
+                <motion.div 
+                  className="w-3 h-3 rounded-full"
+                  style={{ 
+                    backgroundColor: lineGoldenColor,
+                    boxShadow: `0 0 8px ${lineGoldenColor}`
+                  }}
+                  animate={{
+                    opacity: [0.8, 1, 0.8],
+                    boxShadow: [`0 0 5px ${lineGoldenColor}`, `0 0 12px ${lineGoldenColor}`, `0 0 5px ${lineGoldenColor}`]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    delay: index * 0.2
+                  }}
+                />
+                <motion.span 
+                  className="text-sm font-medium"
+                  style={{ 
+                    textShadow: isLineHovered ? `0 0 10px ${lineGoldenColor}80` : 'none'
+                  }}
+                  animate={isLineHovered ? {
+                    opacity: [0.8, 1, 0.8],
+                  } : {}}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  {line.name}
+                </motion.span>
+              </div>
+              <div className="text-xs mt-1" style={{ color: 'rgba(212,175,55,0.7)' }}>
+                {line.points?.length || 0} points
+              </div>
+            </motion.button>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 export default function Home() {
@@ -755,13 +1056,13 @@ export default function Home() {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 mb-4">
-                    ✨ Analyzed Result
+                    ✨ Analyzed Result with Interactive Lines
                   </h3>
                   {result.imageBase64 && (
-                    <img
-                      src={result.imageBase64}
-                      alt="Result"
-                      className="w-full rounded-xl shadow-md"
+                    <PalmImageWithSVG 
+                      imageBase64={result.imageBase64}
+                      lines={result.lines}
+                      imageMeta={result.imageMeta}
                     />
                   )}
                 </div>
