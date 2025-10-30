@@ -627,7 +627,7 @@ export default function Home() {
                       <div className="flex gap-3">
                         <div className="flex-shrink-0 w-7 h-7 bg-pink-600 text-white rounded-full flex items-center justify-center text-xs font-bold">5</div>
                         <div>
-                          <strong>Detailed Analysis:</strong> Analyzes hand shape, mounts, and line characteristics for insights.
+                          <strong>Detailed Analysis:</strong> Analyzes hand shape, mounts, line characteristics, skin texture, joint structure, and mole detection.
                         </div>
                       </div>
                       <div className="flex gap-3">
@@ -809,6 +809,28 @@ export default function Home() {
                         </div>
                       </div>
                     )}
+
+                    {/* Mole Detection */}
+                    {result.analysis.detection_checklist.mole_detection && (
+                      <div className="bg-white p-4 rounded-xl shadow-sm">
+                        <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                          <span>🔴</span> Mole Detection
+                        </h4>
+                        <div className="flex items-center gap-2">
+                          <span className={result.analysis.detection_checklist.mole_detection.detected ? 'text-green-600 text-xl' : 'text-green-600 text-xl'}>
+                            ✓
+                          </span>
+                          <span className="text-sm text-gray-700">
+                            {result.analysis.detection_checklist.mole_detection.status}
+                          </span>
+                        </div>
+                        {result.analysis.detection_checklist.mole_detection.count > 0 && (
+                          <div className="mt-2 text-xs text-gray-600">
+                            {result.analysis.detection_checklist.mole_detection.count} mole(s) found on the palm
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -926,6 +948,9 @@ export default function Home() {
                           <li><strong>Hand Characteristics:</strong> Analyzes palm shape, finger lengths, and overall hand geometry</li>
                           <li><strong>Mount Analysis:</strong> Identifies and evaluates the seven mounts (raised areas of the palm) associated with planetary influences in palmistry</li>
                           <li><strong>Line Interpretation:</strong> Analyzes line lengths, depths, breaks, and intersections to generate meaningful interpretations</li>
+                          <li><strong>Skin Analysis:</strong> Evaluates skin color and texture properties for additional insights</li>
+                          <li><strong>Joint Analysis:</strong> Examines joint structure (knotted vs smooth) indicating analytical vs intuitive traits</li>
+                          <li><strong>Mole Detection:</strong> Identifies dark spots/marks on the palm using blob detection algorithms</li>
                         </ul>
                         <p className="text-gray-700 mb-3">
                           <strong>Why it's important:</strong> This is where the "intelligence" of the system shines. It doesn't just detect features—it interprets them according to palmistry principles, providing meaningful insights about personality traits, potential, and life patterns.
@@ -1067,6 +1092,70 @@ export default function Home() {
                   )}
                 </div>
               </div>
+
+              {/* Mole Detection Details */}
+              {result.analysis?.mole_detection && result.analysis.mole_detection.success && result.analysis.mole_detection.count > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span>🔴</span>
+                    Mole Detection Results
+                  </h3>
+                  <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-6 border-2 border-red-200">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                      {/* Mole Count */}
+                      <div className="bg-white p-4 rounded-xl shadow-sm">
+                        <div className="text-3xl font-bold text-red-600 mb-2">
+                          {result.analysis.mole_detection.count}
+                        </div>
+                        <div className="text-gray-700 font-medium">Moles Detected</div>
+                      </div>
+
+                      {/* Detection Parameters */}
+                      {result.analysis.mole_detection.detection_params && (
+                        <div className="bg-white p-4 rounded-xl shadow-sm">
+                          <h5 className="font-bold text-gray-900 mb-2">Detection Parameters</h5>
+                          <div className="text-xs text-gray-600 space-y-1">
+                            <div>Min Area: {result.analysis.mole_detection.detection_params.min_area}px</div>
+                            <div>Max Area: {result.analysis.mole_detection.detection_params.max_area}px</div>
+                            <div>Min Circularity: {result.analysis.mole_detection.detection_params.min_circularity}</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Individual Moles */}
+                    <div className="bg-white p-4 rounded-xl shadow-sm">
+                      <h5 className="font-bold text-gray-900 mb-3">Detected Moles</h5>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {result.analysis.mole_detection.moles.map((mole: any, idx: number) => (
+                          <div key={idx} className="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-bold text-gray-900">Mole #{idx + 1}</span>
+                              <span className={`text-xs px-2 py-1 rounded ${
+                                mole.size_class === 'Large' ? 'bg-red-100 text-red-700' :
+                                mole.size_class === 'Medium' ? 'bg-orange-100 text-orange-700' :
+                                'bg-yellow-100 text-yellow-700'
+                              }`}>
+                                {mole.size_class}
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-600 space-y-1">
+                              <div>Position: ({mole.center[0]}, {mole.center[1]})</div>
+                              <div>Area: {mole.area.toFixed(1)}px²</div>
+                              <div>Circularity: {mole.circularity}</div>
+                              <div>Confidence: <span className={
+                                mole.confidence === 'High' ? 'text-green-600 font-semibold' :
+                                mole.confidence === 'Medium' ? 'text-orange-600' :
+                                'text-gray-600'
+                              }>{mole.confidence}</span></div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Full Analysis Data */}
               {result.analysis && Object.keys(result.analysis).length > 0 && (
