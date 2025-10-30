@@ -768,6 +768,21 @@ export default function Home() {
                       </div>
                     )}
 
+                    {/* Line Origins & Terminations */}
+                    {result.analysis.line_origins_terminations && result.analysis.line_origins_terminations.success && (
+                      <div className="bg-white p-4 rounded-xl shadow-sm">
+                        <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                          <span>🗺️</span> Line Origins & Terminations
+                        </h4>
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-600 text-xl">✓</span>
+                          <span className="text-sm text-gray-700">
+                            {Object.keys(result.analysis.line_origins_terminations.lines || {}).length} line(s) mapped to mounts
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
                     {/* Mounts */}
                     {result.analysis.detection_checklist.mounts && (
                       <div className="bg-white p-4 rounded-xl shadow-sm">
@@ -1469,6 +1484,147 @@ export default function Home() {
                         })}
                       </div>
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Line Origins & Terminations Analysis */}
+              {result.analysis?.line_origins_terminations && result.analysis.line_origins_terminations.success && (
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span>🗺️</span>
+                    Line Origins & Terminations
+                  </h3>
+                  <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-2xl p-6 border-2 border-amber-200">
+                    {/* Summary */}
+                    <div className="bg-white p-4 rounded-xl shadow-sm mb-6">
+                      <h4 className="font-bold text-gray-900 mb-2">Summary</h4>
+                      <p className="text-sm text-gray-700">{result.analysis.line_origins_terminations.summary}</p>
+                      <div className="mt-3 flex gap-4 text-sm">
+                        <div className="text-gray-600">
+                          <strong>Mount Regions:</strong> {Object.keys(result.analysis.line_origins_terminations.mount_regions || {}).length}
+                        </div>
+                        <div className="text-gray-600">
+                          <strong>Lines Analyzed:</strong> {Object.keys(result.analysis.line_origins_terminations.lines || {}).length}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Line Details */}
+                    <div className="space-y-4">
+                      {Object.entries(result.analysis.line_origins_terminations.lines).map(([lineName, lineData]: [string, any]) => (
+                        <div key={lineName} className="bg-white p-5 rounded-xl shadow-sm border-l-4 border-amber-400">
+                          <h4 className="font-bold text-lg text-gray-900 mb-4">{lineName}</h4>
+                          
+                          {/* Origin and Termination */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            {/* Origin */}
+                            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                                <div className="font-semibold text-green-800">Origin (Start)</div>
+                              </div>
+                              <div className="text-sm space-y-1">
+                                <div className="text-gray-900 font-medium">{lineData.origin.mount_name}</div>
+                                <div className="text-gray-600 text-xs">{lineData.origin.description}</div>
+                                <div className="text-gray-500 text-xs">
+                                  Position: ({lineData.origin.coordinates[0]}, {lineData.origin.coordinates[1]})
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Termination */}
+                            <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                                <div className="font-semibold text-red-800">Termination (End)</div>
+                              </div>
+                              <div className="text-sm space-y-1">
+                                <div className="text-gray-900 font-medium">{lineData.termination.mount_name}</div>
+                                <div className="text-gray-600 text-xs">{lineData.termination.description}</div>
+                                <div className="text-gray-500 text-xs">
+                                  Position: ({lineData.termination.coordinates[0]}, {lineData.termination.coordinates[1]})
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Line Info */}
+                          <div className="flex gap-4 text-sm text-gray-600 mb-4 pb-4 border-b border-gray-200">
+                            <div>
+                              <strong>Line Length:</strong> {lineData.line_length} pixels
+                            </div>
+                            <div>
+                              <strong>Points:</strong> {lineData.total_points}
+                            </div>
+                          </div>
+
+                          {/* Palmistry Interpretation */}
+                          {lineData.interpretation && (
+                            <div className="space-y-3">
+                              <h5 className="font-semibold text-gray-900">Palmistry Interpretation</h5>
+                              
+                              {lineData.interpretation.origin_meaning && lineData.interpretation.origin_meaning.length > 0 && (
+                                <div className="bg-green-50 p-3 rounded-lg">
+                                  <div className="text-sm font-semibold text-green-800 mb-1">Origin Meaning:</div>
+                                  <ul className="text-sm text-gray-700 space-y-1">
+                                    {lineData.interpretation.origin_meaning.map((meaning: string, idx: number) => (
+                                      <li key={idx} className="flex items-start gap-2">
+                                        <span className="text-green-600 mt-0.5">•</span>
+                                        <span>{meaning}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {lineData.interpretation.termination_meaning && lineData.interpretation.termination_meaning.length > 0 && (
+                                <div className="bg-red-50 p-3 rounded-lg">
+                                  <div className="text-sm font-semibold text-red-800 mb-1">Termination Meaning:</div>
+                                  <ul className="text-sm text-gray-700 space-y-1">
+                                    {lineData.interpretation.termination_meaning.map((meaning: string, idx: number) => (
+                                      <li key={idx} className="flex items-start gap-2">
+                                        <span className="text-red-600 mt-0.5">•</span>
+                                        <span>{meaning}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {lineData.interpretation.overall_meaning && lineData.interpretation.overall_meaning.length > 0 && (
+                                <div className="bg-amber-50 p-3 rounded-lg">
+                                  <div className="text-sm font-semibold text-amber-800 mb-1">Overall Significance:</div>
+                                  <ul className="text-sm text-gray-700 space-y-1">
+                                    {lineData.interpretation.overall_meaning.map((meaning: string, idx: number) => (
+                                      <li key={idx} className="flex items-start gap-2">
+                                        <span className="text-amber-600 mt-0.5">•</span>
+                                        <span>{meaning}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Mount Regions Legend */}
+                    {result.analysis.line_origins_terminations.mount_regions && (
+                      <div className="bg-white p-4 rounded-xl shadow-sm mt-6">
+                        <h4 className="font-bold text-gray-900 mb-3">Palm Mount Regions</h4>
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 text-sm">
+                          {Object.entries(result.analysis.line_origins_terminations.mount_regions).map(([mountKey, mountData]: [string, any]) => (
+                            <div key={mountKey} className="bg-gray-50 p-2 rounded-lg">
+                              <div className="font-semibold text-gray-800">{mountData.name}</div>
+                              <div className="text-xs text-gray-600">{mountData.description}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
