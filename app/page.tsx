@@ -1223,6 +1223,115 @@ export default function Home() {
                 </div>
               )}
 
+              {/* Fingertip Shapes */}
+              {result.analysis?.fingertip_shapes && result.analysis.fingertip_shapes.success && (
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span>👆</span>
+                    Fingertip Shape Analysis
+                  </h3>
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border-2 border-purple-200">
+                    <div className="mb-4 text-sm text-gray-700">
+                      <strong>Computer Vision Analysis:</strong> Fingertip contours analyzed for shape classification
+                    </div>
+                    
+                    {/* Fingertip Classifications */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                      {Object.entries(result.analysis.fingertip_shapes.fingers).map(([fingerName, fingerData]: [string, any]) => {
+                        if (!fingerData.success) return null;
+                        
+                        const shapeColors: Record<string, string> = {
+                          "Pointed/Conic": "from-purple-100 to-purple-200 border-purple-400",
+                          "Square": "from-orange-100 to-orange-200 border-orange-400",
+                          "Spatulate": "from-green-100 to-green-200 border-green-400",
+                          "Intermediate": "from-cyan-100 to-cyan-200 border-cyan-400"
+                        };
+                        
+                        const colorClass = shapeColors[fingerData.classification] || "from-gray-100 to-gray-200 border-gray-400";
+                        
+                        return (
+                          <div key={fingerName} className={`bg-gradient-to-br ${colorClass} p-4 rounded-xl border-2 shadow-sm`}>
+                            <div className="text-xs text-gray-600 mb-1 capitalize">{fingerName}</div>
+                            <div className="text-lg font-bold text-gray-900 mb-2">
+                              {fingerData.classification}
+                            </div>
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="text-gray-700">Confidence:</span>
+                              <div className="flex-1 bg-white rounded-full h-2">
+                                <div 
+                                  className="bg-green-500 h-2 rounded-full"
+                                  style={{ width: `${fingerData.confidence * 100}%` }}
+                                />
+                              </div>
+                              <span className="font-semibold">{Math.round(fingerData.confidence * 100)}%</span>
+                            </div>
+                            {fingerData.characteristics && fingerData.characteristics.length > 0 && (
+                              <div className="mt-2 text-xs text-gray-600">
+                                {fingerData.characteristics[0]}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Shape Type Legend */}
+                    <div className="bg-white p-4 rounded-xl shadow-sm mb-6">
+                      <h4 className="font-bold text-gray-900 mb-3">Shape Types & Meanings</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div className="flex items-start gap-2">
+                          <div className="w-4 h-4 bg-purple-400 rounded-full mt-1 flex-shrink-0"></div>
+                          <div>
+                            <div className="font-semibold text-purple-700">Pointed/Conic</div>
+                            <div className="text-gray-600 text-xs">Idealistic, artistic, intuitive personality</div>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="w-4 h-4 bg-orange-400 rounded-full mt-1 flex-shrink-0"></div>
+                          <div>
+                            <div className="font-semibold text-orange-700">Square</div>
+                            <div className="text-gray-600 text-xs">Practical, logical, methodical nature</div>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="w-4 h-4 bg-green-400 rounded-full mt-1 flex-shrink-0"></div>
+                          <div>
+                            <div className="font-semibold text-green-700">Spatulate</div>
+                            <div className="text-gray-600 text-xs">Active, energetic, innovative spirit</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Detailed Interpretations */}
+                    <div className="bg-white p-4 rounded-xl shadow-sm">
+                      <h4 className="font-bold text-gray-900 mb-3">Personality Insights by Finger</h4>
+                      <div className="space-y-3">
+                        {Object.entries(result.analysis.fingertip_shapes.fingers).map(([fingerName, fingerData]: [string, any]) => {
+                          if (!fingerData.success || !fingerData.interpretation) return null;
+                          
+                          return (
+                            <div key={fingerName} className="border-l-4 border-purple-400 pl-3">
+                              <div className="font-semibold text-gray-900 capitalize mb-1">
+                                {fingerName} - {fingerData.classification}
+                              </div>
+                              <ul className="text-sm text-gray-700 space-y-1">
+                                {fingerData.interpretation.slice(0, 3).map((insight: string, idx: number) => (
+                                  <li key={idx} className="flex items-start gap-2">
+                                    <span className="text-purple-600 mt-0.5">•</span>
+                                    <span>{insight}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Mole Detection Details */}
               {result.analysis?.mole_detection && result.analysis.mole_detection.success && result.analysis.mole_detection.count > 0 && (
                 <div className="mb-8">
