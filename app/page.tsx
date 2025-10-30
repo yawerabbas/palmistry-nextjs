@@ -1093,6 +1093,136 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* Finger Length Ratios */}
+              {result.analysis?.finger_ratios && result.analysis.finger_ratios.success && (
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span>🖐️</span>
+                    Finger Length Ratios Analysis
+                  </h3>
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border-2 border-blue-200">
+                    {/* Finger Lengths */}
+                    <div className="mb-6">
+                      <h4 className="font-bold text-gray-900 mb-3">Finger Lengths (Pixels)</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
+                          <div className="text-xs text-gray-600 mb-1">Jupiter (Index)</div>
+                          <div className="text-2xl font-bold text-blue-600">
+                            {result.analysis.finger_ratios.finger_lengths.jupiter}
+                          </div>
+                        </div>
+                        <div className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500">
+                          <div className="text-xs text-gray-600 mb-1">Saturn (Middle)</div>
+                          <div className="text-2xl font-bold text-green-600">
+                            {result.analysis.finger_ratios.finger_lengths.saturn}
+                          </div>
+                        </div>
+                        <div className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-red-500">
+                          <div className="text-xs text-gray-600 mb-1">Sun (Ring)</div>
+                          <div className="text-2xl font-bold text-red-600">
+                            {result.analysis.finger_ratios.finger_lengths.sun}
+                          </div>
+                        </div>
+                        <div className="bg-white p-4 rounded-xl shadow-sm border-l-4 border-yellow-500">
+                          <div className="text-xs text-gray-600 mb-1">Mercury (Pinky)</div>
+                          <div className="text-2xl font-bold text-yellow-600">
+                            {result.analysis.finger_ratios.finger_lengths.mercury}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Ratios */}
+                    <div className="mb-6">
+                      <h4 className="font-bold text-gray-900 mb-3">Finger Ratios (vs Saturn Reference)</h4>
+                      <div className="bg-white p-4 rounded-xl shadow-sm">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                          <div className="flex justify-between items-center p-2 bg-blue-50 rounded">
+                            <span className="text-gray-700">Jupiter/Saturn:</span>
+                            <span className="font-bold text-blue-600">
+                              {result.analysis.finger_ratios.ratios.jupiter_to_saturn}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center p-2 bg-red-50 rounded">
+                            <span className="text-gray-700">Sun/Saturn:</span>
+                            <span className="font-bold text-red-600">
+                              {result.analysis.finger_ratios.ratios.sun_to_saturn}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center p-2 bg-yellow-50 rounded">
+                            <span className="text-gray-700">Mercury/Saturn:</span>
+                            <span className="font-bold text-yellow-600">
+                              {result.analysis.finger_ratios.ratios.mercury_to_saturn}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 2D:4D Ratio */}
+                    <div className="mb-6">
+                      <h4 className="font-bold text-gray-900 mb-3">2D:4D Digit Ratio (Jupiter/Sun)</h4>
+                      <div className="bg-white p-4 rounded-xl shadow-sm">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-lg font-bold text-indigo-600">
+                            {result.analysis.finger_ratios.ratios.jupiter_to_sun}
+                          </span>
+                          <span className="text-sm px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full">
+                            {result.analysis.finger_ratios.ratios.jupiter_to_sun > 1.0 ? 'Higher' : 
+                             result.analysis.finger_ratios.ratios.jupiter_to_sun < 0.95 ? 'Lower' : 'Balanced'}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {result.analysis.finger_ratios.ratios.jupiter_to_sun > 1.0 
+                            ? 'Indicates assertive nature, verbal skills, and social dominance' 
+                            : result.analysis.finger_ratios.ratios.jupiter_to_sun < 0.95
+                            ? 'Indicates spatial abilities, mathematical skills, and athletic prowess'
+                            : 'Balanced abilities across verbal and spatial domains'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Classifications */}
+                    <div className="mb-6">
+                      <h4 className="font-bold text-gray-900 mb-3">Finger Classifications</h4>
+                      <div className="bg-white p-4 rounded-xl shadow-sm">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                          {Object.entries(result.analysis.finger_ratios.classifications).map(([finger, classification]: [string, any]) => (
+                            <div key={finger} className="p-2 bg-gray-50 rounded text-center">
+                              <div className="font-semibold text-gray-700 capitalize">{finger}</div>
+                              <div className={`text-xs font-bold ${
+                                classification === 'Long' ? 'text-green-600' :
+                                classification === 'Short' ? 'text-orange-600' :
+                                'text-blue-600'
+                              }`}>
+                                {classification}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Personality Traits */}
+                    {result.analysis.finger_ratios.interpretations?.personality_traits && (
+                      <div>
+                        <h4 className="font-bold text-gray-900 mb-3">Personality Insights</h4>
+                        <div className="bg-white p-4 rounded-xl shadow-sm">
+                          <ul className="space-y-2 text-sm text-gray-700">
+                            {result.analysis.finger_ratios.interpretations.personality_traits.map((trait: string, idx: number) => (
+                              <li key={idx} className="flex items-start gap-2">
+                                <span className="text-indigo-600 mt-1">•</span>
+                                <span>{trait}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Mole Detection Details */}
               {result.analysis?.mole_detection && result.analysis.mole_detection.success && result.analysis.mole_detection.count > 0 && (
                 <div className="mb-8">
