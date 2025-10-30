@@ -1332,6 +1332,147 @@ export default function Home() {
                 </div>
               )}
 
+              {/* Finger Flexibility */}
+              {result.analysis?.finger_flexibility && result.analysis.finger_flexibility.success && (
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span>🤲</span>
+                    Finger Flexibility Analysis
+                  </h3>
+                  <div className="bg-gradient-to-br from-green-50 to-teal-50 rounded-2xl p-6 border-2 border-green-200">
+                    {/* Overall Flexibility */}
+                    {result.analysis.finger_flexibility.overall_flexibility && (
+                      <div className="mb-6 bg-white p-6 rounded-xl shadow-sm">
+                        <h4 className="font-bold text-gray-900 mb-3">Overall Hand Flexibility</h4>
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <div className="text-3xl font-bold text-green-600 mb-2">
+                              {result.analysis.finger_flexibility.overall_flexibility.overall_classification}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              Score: {result.analysis.finger_flexibility.overall_flexibility.overall_score}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm text-gray-600 mb-1">Flexibility Level</div>
+                            <div className="w-48 bg-gray-200 rounded-full h-4">
+                              <div 
+                                className="bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 h-4 rounded-full"
+                                style={{ width: `${result.analysis.finger_flexibility.overall_flexibility.overall_score * 100}%` }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-3 bg-teal-50 rounded-lg">
+                          <p className="text-sm text-gray-700">
+                            <strong>Personality Insight:</strong> {result.analysis.finger_flexibility.overall_flexibility.personality_trait}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Individual Fingers */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+                      {Object.entries(result.analysis.finger_flexibility.fingers).map(([fingerName, fingerData]: [string, any]) => {
+                        if (!fingerData.success) return null;
+                        
+                        const flexColors: Record<string, string> = {
+                          "Stiff/Straight": "from-red-100 to-red-200 border-red-400",
+                          "Normal": "from-yellow-100 to-yellow-200 border-yellow-400",
+                          "Flexible": "from-green-100 to-green-200 border-green-400",
+                          "Very Flexible": "from-purple-100 to-purple-200 border-purple-400"
+                        };
+                        
+                        const colorClass = flexColors[fingerData.classification] || "from-gray-100 to-gray-200 border-gray-400";
+                        
+                        return (
+                          <div key={fingerName} className={`bg-gradient-to-br ${colorClass} p-4 rounded-xl border-2 shadow-sm`}>
+                            <div className="text-xs text-gray-600 mb-1 capitalize">{fingerName}</div>
+                            <div className="text-sm font-bold text-gray-900 mb-2">
+                              {fingerData.classification}
+                            </div>
+                            <div className="text-xs text-gray-700 mb-2">
+                              Score: {fingerData.flexibility_score}
+                            </div>
+                            {fingerData.joint_angles && (
+                              <div className="text-xs text-gray-600 space-y-1">
+                                {Object.entries(fingerData.joint_angles).map(([joint, angle]: [string, any]) => (
+                                  <div key={joint} className="flex justify-between">
+                                    <span className="uppercase">{joint}:</span>
+                                    <span className="font-semibold">{angle}°</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Flexibility Scale Legend */}
+                    <div className="bg-white p-4 rounded-xl shadow-sm mb-6">
+                      <h4 className="font-bold text-gray-900 mb-3">Flexibility Scale & Meanings</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                        <div className="flex items-start gap-2">
+                          <div className="w-4 h-4 bg-red-400 rounded-full mt-1 flex-shrink-0"></div>
+                          <div>
+                            <div className="font-semibold text-red-700">Stiff/Straight</div>
+                            <div className="text-gray-600 text-xs">Firm principles, structured approach</div>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="w-4 h-4 bg-yellow-400 rounded-full mt-1 flex-shrink-0"></div>
+                          <div>
+                            <div className="font-semibold text-yellow-700">Normal</div>
+                            <div className="text-gray-600 text-xs">Balanced, adaptable when needed</div>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="w-4 h-4 bg-green-400 rounded-full mt-1 flex-shrink-0"></div>
+                          <div>
+                            <div className="font-semibold text-green-700">Flexible</div>
+                            <div className="text-gray-600 text-xs">Open-minded, adaptable, creative</div>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <div className="w-4 h-4 bg-purple-400 rounded-full mt-1 flex-shrink-0"></div>
+                          <div>
+                            <div className="font-semibold text-purple-700">Very Flexible</div>
+                            <div className="text-gray-600 text-xs">Highly adaptable, spontaneous</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Detailed Interpretations */}
+                    <div className="bg-white p-4 rounded-xl shadow-sm">
+                      <h4 className="font-bold text-gray-900 mb-3">Personality Insights by Finger</h4>
+                      <div className="space-y-3">
+                        {Object.entries(result.analysis.finger_flexibility.fingers).map(([fingerName, fingerData]: [string, any]) => {
+                          if (!fingerData.success || !fingerData.interpretation) return null;
+                          
+                          return (
+                            <div key={fingerName} className="border-l-4 border-green-400 pl-3">
+                              <div className="font-semibold text-gray-900 capitalize mb-1">
+                                {fingerName} - {fingerData.classification}
+                              </div>
+                              <ul className="text-sm text-gray-700 space-y-1">
+                                {fingerData.interpretation.slice(0, 3).map((insight: string, idx: number) => (
+                                  <li key={idx} className="flex items-start gap-2">
+                                    <span className="text-green-600 mt-0.5">•</span>
+                                    <span>{insight}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Mole Detection Details */}
               {result.analysis?.mole_detection && result.analysis.mole_detection.success && result.analysis.mole_detection.count > 0 && (
                 <div className="mb-8">
