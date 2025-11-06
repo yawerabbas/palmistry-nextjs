@@ -675,6 +675,47 @@ export default function Home() {
                 Run ID: <code className="bg-gray-100 px-2 py-1 rounded">{result.runId}</code>
               </div>
 
+              {/* Handedness Detection (if available) */}
+              {result.analysis?.handedness && (
+                <div className="mb-6 bg-gradient-to-r from-amber-50 to-yellow-50 border-2 border-amber-300 rounded-2xl p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="text-5xl">
+                      {result.analysis.handedness.detected_hand === 'Right' ? '🤚' : '✋'}
+                    </div>
+                    <div className="flex-grow">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-2xl font-bold text-gray-900">
+                          {result.analysis.handedness.detected_hand} Hand Detected
+                        </h3>
+                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                          result.analysis.handedness.palmistry_type === 'Active Hand' 
+                            ? 'bg-orange-200 text-orange-800' 
+                            : 'bg-blue-200 text-blue-800'
+                        }`}>
+                          {result.analysis.handedness.palmistry_type}
+                        </span>
+                      </div>
+                      <p className="text-gray-700 mb-1">
+                        <strong>Palmistry Meaning:</strong> {result.analysis.handedness.meaning}
+                      </p>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <span>Confidence:</span>
+                        <div className="flex-1 max-w-xs bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-green-500 h-2 rounded-full transition-all"
+                            style={{ width: `${result.analysis.handedness.confidence * 100}%` }}
+                          />
+                        </div>
+                        <span className="font-semibold">{(result.analysis.handedness.confidence * 100).toFixed(1)}%</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 p-3 bg-white bg-opacity-60 rounded-lg text-xs text-gray-600">
+                    <strong>Note:</strong> {result.analysis.handedness.note}
+                  </div>
+                </div>
+              )}
+
               {/* Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl">
