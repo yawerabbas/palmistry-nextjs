@@ -1529,6 +1529,130 @@ export default function Home() {
                 </div>
               )}
 
+              {/* Mount Contacts (Computational Geometry) */}
+              {result.analysis?.mount_contacts && result.analysis.mount_contacts.success && (
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span>🎯</span>
+                    Mount Contact Analysis (Computational Geometry)
+                  </h3>
+                  <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border-2 border-emerald-200">
+                    {/* Summary */}
+                    <div className="bg-white p-4 rounded-xl shadow-sm mb-6">
+                      <h4 className="font-bold text-gray-900 mb-2">Summary</h4>
+                      <p className="text-sm text-gray-700">{result.analysis.mount_contacts.summary}</p>
+                      <div className="mt-3 text-xs text-gray-600">
+                        Uses point-in-polygon testing to determine which mount regions line endpoints contact. This is more accurate than distance-based methods.
+                      </div>
+                    </div>
+
+                    {/* Line Contact Details */}
+                    <div className="space-y-4">
+                      {Object.entries(result.analysis.mount_contacts.lines).map(([lineName, contactData]: [string, any]) => {
+                        const lineColors: Record<string, string> = {
+                          "Heart Line": "border-l-yellow-500",
+                          "Head Line": "border-l-orange-500",
+                          "Life Line": "border-l-green-500"
+                        };
+                        const borderClass = lineColors[lineName] || "border-l-gray-500";
+                        
+                        return (
+                          <div key={lineName} className={`bg-white p-5 rounded-xl shadow-sm border-l-4 ${borderClass}`}>
+                            <h4 className="font-bold text-lg text-gray-900 mb-4">{lineName}</h4>
+                            
+                            {/* Origin and Termination */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* Origin */}
+                              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                                  <div className="font-semibold text-green-800">Origin (Start)</div>
+                                </div>
+                                <div className="text-lg font-bold text-gray-900">
+                                  {contactData.origin_mount ? (
+                                    <span className="capitalize">{contactData.origin_mount.replace('_', ' ')} Mount</span>
+                                  ) : (
+                                    <span className="text-gray-400">Unknown region</span>
+                                  )}
+                                </div>
+                                {contactData.origin_point && (
+                                  <div className="text-xs text-gray-500 mt-1">
+                                    Position: ({contactData.origin_point[0].toFixed(0)}, {contactData.origin_point[1].toFixed(0)})
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Termination */}
+                              <div className="bg-red-50 p-4 rounded-lg border border-red-200">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                                  <div className="font-semibold text-red-800">Termination (End)</div>
+                                </div>
+                                <div className="text-lg font-bold text-gray-900">
+                                  {contactData.termination_mount ? (
+                                    <span className="capitalize">{contactData.termination_mount.replace('_', ' ')} Mount</span>
+                                  ) : (
+                                    <span className="text-gray-400">Unknown region</span>
+                                  )}
+                                </div>
+                                {contactData.termination_point && (
+                                  <div className="text-xs text-gray-500 mt-1">
+                                    Position: ({contactData.termination_point[0].toFixed(0)}, {contactData.termination_point[1].toFixed(0)})
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Technical Info */}
+                    <div className="bg-white p-4 rounded-xl shadow-sm mt-6">
+                      <h4 className="font-bold text-gray-900 mb-3">📐 Computational Geometry Method</h4>
+                      <div className="space-y-3 text-sm text-gray-700">
+                        <div className="flex items-start gap-2">
+                          <span className="text-emerald-600 mt-0.5">1.</span>
+                          <div>
+                            <strong>Polygon Regions:</strong> Each mount is defined as a polygon with vertices calculated relative to MediaPipe hand landmarks
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-emerald-600 mt-0.5">2.</span>
+                          <div>
+                            <strong>Point-in-Polygon Test:</strong> Uses OpenCV's <code className="bg-gray-100 px-1 rounded">pointPolygonTest()</code> to determine if line endpoints are inside mount regions
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-emerald-600 mt-0.5">3.</span>
+                          <div>
+                            <strong>Topological Check:</strong> More accurate than distance-based methods as it accounts for actual region boundaries
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-emerald-600 mt-0.5">4.</span>
+                          <div>
+                            <strong>Mount Polygons:</strong> {result.analysis.mount_contacts.mount_polygons_count} mount regions analyzed
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Mount Regions Reference */}
+                    <div className="bg-white p-4 rounded-xl shadow-sm mt-4">
+                      <h4 className="font-bold text-gray-900 mb-3">🏔️ Palm Mount Regions</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 text-xs">
+                        {['Jupiter', 'Saturn', 'Sun', 'Mercury', 'Venus', 'Luna', 'Upper Mars', 'Lower Mars', 'Plain of Mars'].map((mount) => (
+                          <div key={mount} className="bg-emerald-50 p-2 rounded text-center font-semibold text-emerald-800">
+                            {mount}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Age Mapping on Lines */}
               {result.analysis?.age_mapping && result.analysis.age_mapping.success && (
                 <div className="mb-8">
