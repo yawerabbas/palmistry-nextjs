@@ -1488,6 +1488,141 @@ export default function Home() {
                 </div>
               )}
 
+              {/* Age Mapping on Lines */}
+              {result.analysis?.age_mapping && result.analysis.age_mapping.success && (
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span>⏳</span>
+                    Age Timeline Mapping on Palm Lines
+                  </h3>
+                  <div className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl p-6 border-2 border-indigo-200">
+                    {/* Summary */}
+                    <div className="bg-white p-4 rounded-xl shadow-sm mb-6">
+                      <h4 className="font-bold text-gray-900 mb-2">Summary</h4>
+                      <p className="text-sm text-gray-700">{result.analysis.age_mapping.summary}</p>
+                      <div className="mt-3 text-xs text-gray-600">
+                        Each line has 100 evenly-spaced points with precise age values. This allows you to determine the age at any point along a line.
+                      </div>
+                    </div>
+
+                    {/* Line Age Ranges */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      {Object.entries(result.analysis.age_mapping.lines).map(([lineName, lineData]: [string, any]) => {
+                        const lineColors: Record<string, string> = {
+                          "Heart Line": "from-yellow-100 to-amber-200 border-yellow-400",
+                          "Head Line": "from-orange-100 to-orange-200 border-orange-400",
+                          "Life Line": "from-green-100 to-lime-200 border-green-400"
+                        };
+                        const colorClass = lineColors[lineName] || "from-gray-100 to-gray-200 border-gray-400";
+                        
+                        return (
+                          <div key={lineName} className={`bg-gradient-to-br ${colorClass} p-5 rounded-xl border-2 shadow-sm`}>
+                            <h4 className="font-bold text-lg text-gray-900 mb-3">{lineName}</h4>
+                            <div className="text-center mb-3">
+                              <div className="text-3xl font-bold text-gray-900">
+                                {lineData.age_range.min.toFixed(0)} - {lineData.age_range.max.toFixed(0)}
+                              </div>
+                              <div className="text-sm text-gray-600">years</div>
+                            </div>
+                            <div className="bg-white bg-opacity-70 p-3 rounded-lg text-sm">
+                              <div className="text-gray-700 mb-1">
+                                <strong>Points Mapped:</strong> {lineData.normalized_points_count}
+                              </div>
+                              <div className="text-gray-700">
+                                <strong>Original Points:</strong> {lineData.original_points_count}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Sample Age Points for Each Line */}
+                    <div className="space-y-4">
+                      {Object.entries(result.analysis.age_mapping.lines).map(([lineName, lineData]: [string, any]) => (
+                        <div key={lineName} className="bg-white p-5 rounded-xl shadow-sm">
+                          <h5 className="font-semibold text-gray-900 mb-3">{lineName} - Sample Age Points</h5>
+                          <div className="overflow-x-auto">
+                            <div className="flex gap-3 min-w-max pb-2">
+                              {lineData.age_mapped_points
+                                .filter((_: any, idx: number) => idx % 10 === 0) // Show every 10th point
+                                .map((point: any) => (
+                                  <div key={point.index} className="flex-shrink-0 bg-gradient-to-br from-indigo-50 to-blue-50 p-3 rounded-lg border border-indigo-200 text-center min-w-[100px]">
+                                    <div className="text-xs text-gray-600 mb-1">Point {point.index}</div>
+                                    <div className="text-2xl font-bold text-indigo-600 mb-1">
+                                      {point.age.toFixed(0)}
+                                    </div>
+                                    <div className="text-xs text-gray-500">years</div>
+                                    <div className="text-xs text-gray-400 mt-2">
+                                      ({point.x.toFixed(0)}, {point.y.toFixed(0)})
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                          <div className="mt-3 text-xs text-gray-600 text-center">
+                            Scroll to see age progression along the line →
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Age Mapping Info */}
+                    <div className="bg-white p-4 rounded-xl shadow-sm mt-6">
+                      <h4 className="font-bold text-gray-900 mb-3">📚 How Age Mapping Works</h4>
+                      <div className="space-y-3 text-sm text-gray-700">
+                        <div className="flex items-start gap-2">
+                          <span className="text-indigo-600 mt-0.5">1.</span>
+                          <div>
+                            <strong>Skeletonization:</strong> The detected line is thinned to single-pixel width for precise measurement
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-indigo-600 mt-0.5">2.</span>
+                          <div>
+                            <strong>Path Extraction:</strong> The skeleton is converted into an ordered sequence of coordinates
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-indigo-600 mt-0.5">3.</span>
+                          <div>
+                            <strong>Normalization:</strong> The path is resampled to exactly 100 evenly-spaced points using spline interpolation
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="text-indigo-600 mt-0.5">4.</span>
+                          <div>
+                            <strong>Age Assignment:</strong> Each point is assigned an age based on traditional palmistry age ranges
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Traditional Age Ranges */}
+                    <div className="bg-white p-4 rounded-xl shadow-sm mt-4">
+                      <h4 className="font-bold text-gray-900 mb-3">🔮 Traditional Palmistry Age Ranges</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div className="p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                          <div className="font-semibold text-yellow-800 mb-1">Heart Line</div>
+                          <div className="text-gray-700">Ages 70 → 0 years</div>
+                          <div className="text-xs text-gray-600 mt-1">Reads from pinky to index (reversed)</div>
+                        </div>
+                        <div className="p-3 bg-orange-50 rounded-lg border border-orange-200">
+                          <div className="font-semibold text-orange-800 mb-1">Head Line</div>
+                          <div className="text-gray-700">Ages 0 → 80 years</div>
+                          <div className="text-xs text-gray-600 mt-1">Reads from index to outer palm</div>
+                        </div>
+                        <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                          <div className="font-semibold text-green-800 mb-1">Life Line</div>
+                          <div className="text-gray-700">Ages 0 → 100 years</div>
+                          <div className="text-xs text-gray-600 mt-1">Reads downward from between thumb/index</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Line Origins & Terminations Analysis */}
               {result.analysis?.line_origins_terminations && result.analysis.line_origins_terminations.success && (
                 <div className="mb-8">
