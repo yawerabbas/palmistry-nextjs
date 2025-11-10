@@ -1963,30 +1963,47 @@ export default function Home() {
                     <div className="bg-white p-4 rounded-xl shadow-sm">
                       <h5 className="font-bold text-gray-900 mb-3">Detected Moles</h5>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {result.analysis.mole_detection.moles.map((mole: any, idx: number) => (
-                          <div key={idx} className="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="font-bold text-gray-900">Mole #{idx + 1}</span>
-                              <span className={`text-xs px-2 py-1 rounded ${
-                                mole.size_class === 'Large' ? 'bg-red-100 text-red-700' :
-                                mole.size_class === 'Medium' ? 'bg-orange-100 text-orange-700' :
-                                'bg-yellow-100 text-yellow-700'
-                              }`}>
-                                {mole.size_class}
-                              </span>
+                        {result.analysis.mole_detection.moles?.map((mole: any, idx: number) => {
+                          // Handle both OpenAI format (position.x, position.y) and CV format (center array)
+                          const posX = mole.position?.x ?? (mole.center?.[0] ?? 'N/A');
+                          const posY = mole.position?.y ?? (mole.center?.[1] ?? 'N/A');
+                          const area = mole.area_pixels ?? mole.area ?? 0;
+                          const sizeClass = mole.size_classification ?? mole.size_class ?? 'Unknown';
+                          const confidenceLevel = mole.confidence_level ?? mole.confidence ?? 'Unknown';
+                          const circularity = mole.circularity ?? 0;
+                          
+                          return (
+                            <div key={idx} className="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-bold text-gray-900">Mole #{idx + 1}</span>
+                                <span className={`text-xs px-2 py-1 rounded ${
+                                  sizeClass === 'Large' ? 'bg-red-100 text-red-700' :
+                                  sizeClass === 'Medium' ? 'bg-orange-100 text-orange-700' :
+                                  'bg-yellow-100 text-yellow-700'
+                                }`}>
+                                  {sizeClass}
+                                </span>
+                              </div>
+                              <div className="text-xs text-gray-600 space-y-1">
+                                <div>Position: ({typeof posX === 'number' ? posX.toFixed(0) : posX}, {typeof posY === 'number' ? posY.toFixed(0) : posY})</div>
+                                <div>Area: {typeof area === 'number' ? area.toFixed(1) : area}px²</div>
+                                <div>Circularity: {typeof circularity === 'number' ? circularity.toFixed(3) : circularity}</div>
+                                <div>Confidence: <span className={
+                                  confidenceLevel === 'High' ? 'text-green-600 font-semibold' :
+                                  confidenceLevel === 'Medium' ? 'text-orange-600' :
+                                  'text-gray-600'
+                                }>{confidenceLevel}</span></div>
+                                {/* Show palmistry meaning if available (OpenAI) */}
+                                {mole.palmistry_meaning && (
+                                  <div className="mt-2 pt-2 border-t border-gray-300">
+                                    <div className="font-semibold">Region: {mole.region || 'Unknown'}</div>
+                                    <div className="text-gray-700 mt-1">{mole.palmistry_meaning}</div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                            <div className="text-xs text-gray-600 space-y-1">
-                              <div>Position: ({mole.center[0]}, {mole.center[1]})</div>
-                              <div>Area: {mole.area.toFixed(1)}px²</div>
-                              <div>Circularity: {mole.circularity}</div>
-                              <div>Confidence: <span className={
-                                mole.confidence === 'High' ? 'text-green-600 font-semibold' :
-                                mole.confidence === 'Medium' ? 'text-orange-600' :
-                                'text-gray-600'
-                              }>{mole.confidence}</span></div>
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        }) || []}
                       </div>
                     </div>
                   </div>
