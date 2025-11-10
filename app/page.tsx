@@ -1575,9 +1575,9 @@ export default function Home() {
                                     <span className="text-gray-400">Unknown region</span>
                                   )}
                                 </div>
-                                {contactData.origin_point && (
+                                {contactData.origin_point && Array.isArray(contactData.origin_point) && contactData.origin_point.length >= 2 && (
                                   <div className="text-xs text-gray-500 mt-1">
-                                    Position: ({contactData.origin_point[0].toFixed(0)}, {contactData.origin_point[1].toFixed(0)})
+                                    Position: ({typeof contactData.origin_point[0] === 'number' ? contactData.origin_point[0].toFixed(0) : contactData.origin_point[0]}, {typeof contactData.origin_point[1] === 'number' ? contactData.origin_point[1].toFixed(0) : contactData.origin_point[1]})
                                   </div>
                                 )}
                               </div>
@@ -1595,9 +1595,9 @@ export default function Home() {
                                     <span className="text-gray-400">Unknown region</span>
                                   )}
                                 </div>
-                                {contactData.termination_point && (
+                                {contactData.termination_point && Array.isArray(contactData.termination_point) && contactData.termination_point.length >= 2 && (
                                   <div className="text-xs text-gray-500 mt-1">
-                                    Position: ({contactData.termination_point[0].toFixed(0)}, {contactData.termination_point[1].toFixed(0)})
+                                    Position: ({typeof contactData.termination_point[0] === 'number' ? contactData.termination_point[0].toFixed(0) : contactData.termination_point[0]}, {typeof contactData.termination_point[1] === 'number' ? contactData.termination_point[1].toFixed(0) : contactData.termination_point[1]})
                                   </div>
                                 )}
                               </div>
@@ -1685,16 +1685,16 @@ export default function Home() {
                             <h4 className="font-bold text-lg text-gray-900 mb-3">{lineName}</h4>
                             <div className="text-center mb-3">
                               <div className="text-3xl font-bold text-gray-900">
-                                {lineData.age_range.min.toFixed(0)} - {lineData.age_range.max.toFixed(0)}
+                                {lineData?.age_range?.min ? lineData.age_range.min.toFixed(0) : '0'} - {lineData?.age_range?.max ? lineData.age_range.max.toFixed(0) : '100'}
                               </div>
                               <div className="text-sm text-gray-600">years</div>
                             </div>
                             <div className="bg-white bg-opacity-70 p-3 rounded-lg text-sm">
                               <div className="text-gray-700 mb-1">
-                                <strong>Points Mapped:</strong> {lineData.normalized_points_count}
+                                <strong>Points Mapped:</strong> {lineData?.normalized_points_count || 0}
                               </div>
                               <div className="text-gray-700">
-                                <strong>Original Points:</strong> {lineData.original_points_count}
+                                <strong>Original Points:</strong> {lineData?.original_points_count || 0}
                               </div>
                             </div>
                           </div>
@@ -1710,19 +1710,19 @@ export default function Home() {
                           <div className="overflow-x-auto">
                             <div className="flex gap-3 min-w-max pb-2">
                               {lineData.age_mapped_points
-                                .filter((_: any, idx: number) => idx % 10 === 0) // Show every 10th point
-                                .map((point: any) => (
-                                  <div key={point.index} className="flex-shrink-0 bg-gradient-to-br from-indigo-50 to-blue-50 p-3 rounded-lg border border-indigo-200 text-center min-w-[100px]">
-                                    <div className="text-xs text-gray-600 mb-1">Point {point.index}</div>
+                                ?.filter((_: any, idx: number) => idx % 10 === 0) // Show every 10th point
+                                ?.map((point: any) => (
+                                  <div key={point?.index || 0} className="flex-shrink-0 bg-gradient-to-br from-indigo-50 to-blue-50 p-3 rounded-lg border border-indigo-200 text-center min-w-[100px]">
+                                    <div className="text-xs text-gray-600 mb-1">Point {point?.index || 0}</div>
                                     <div className="text-2xl font-bold text-indigo-600 mb-1">
-                                      {point.age.toFixed(0)}
+                                      {point?.age ? point.age.toFixed(0) : 'N/A'}
                                     </div>
                                     <div className="text-xs text-gray-500">years</div>
                                     <div className="text-xs text-gray-400 mt-2">
-                                      ({point.x.toFixed(0)}, {point.y.toFixed(0)})
+                                      ({point?.x ? point.x.toFixed(0) : '0'}, {point?.y ? point.y.toFixed(0) : '0'})
                                     </div>
                                   </div>
-                                ))}
+                                )) || []}
                             </div>
                           </div>
                           <div className="mt-3 text-xs text-gray-600 text-center">
